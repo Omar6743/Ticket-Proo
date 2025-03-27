@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compra de Boletos - Museu Nacional de Art de Catalunya</title>
+    <link rel="stylesheet" href="../src/css/teatroColon.css" />
+    <style>
+      .restricciones {
+        list-style-type: disc;
+        padding-left: 20px;
+      }
+      .campo-pago {
+        margin-top: 10px;
+        display: none;
+      }
+      .restriccion {
+        color: red;
+        font-weight: bold;
+      }
+      input[type="date"] {
+        max-width: 250px;
+        transition: box-shadow 0.3s;
+      }
+      input[type="date"]:focus {
+        outline: none;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+      }
+      /* Estilos para el modal de WhatsApp */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+      .modal-content h2 {
+        margin-top: 0;
+      }
+      .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 28px;
+        color: #aaa;
+        cursor: pointer;
+      }
+      .close:hover {
+        color: #000;
+      }
+    </style>
+    <!-- Se incluye jsPDF desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="menu-wrapper">
+      <h1>Compra de Boletos - Museo Vaticano</h1>
+
+      <h3>Seleccionar fecha:</h3>
+      <input type="date" id="fecha" required />
+
+      <h3>Horarios de Servicio:</h3>
+      <select id="horario">
+        <option value="9:00 AM">9:00 AM</option>
+        <option value="12:00 PM">12:00 PM</option>
+        <option value="3:00 PM">3:00 PM</option>
+      </select>
+
+      <h3>Cantidad de boletos (máximo 5):</h3>
+      <input type="number" id="cantidadBoletos" value="1" min="1" max="5" />
+
+      <h3>Monto total a pagar: $<span id="totalPagar">0</span></h3>
+
+      <h3>Seleccionar método de pago:</h3>
+      <!-- Se utiliza "tarjeta" para ambos tipos de tarjeta -->
+      <select id="metodoPago" onchange="mostrarCamposPago()">
+        <option value="tarjeta">Tarjeta Débito</option>
+        <option value="tarjeta">Tarjeta Crédito</option>
+        <option value="paypal">PayPal</option>
+      </select>
+
+      <div id="camposTarjeta" class="campo-pago">
+        <h4>Datos de tarjeta:</h4>
+        <label for="numeroTarjeta">Número de tarjeta:</label>
+        <input
+          type="text"
+          id="numeroTarjeta"
+          placeholder="Ingrese número de tarjeta"
+          pattern="\d{16}"
+          required
+        /><br />
+        <label for="nombreTitular">Nombre del titular:</label>
+        <input
+          type="text"
+          id="nombreTitular"
+          placeholder="Ingrese nombre del titular"
+          required
+        />
+      </div>
+
+      <div id="camposPaypal" class="campo-pago">
+        <h4>Datos de PayPal:</h4>
+        <label for="correoPaypal">Correo electrónico de PayPal:</label>
+        <input
+          type="email"
+          id="correoPaypal"
+          placeholder="Ingrese correo de PayPal"
+          required
+        />
+      </div>
+
+      <button id="comprarBtn" onclick="mostrarResumen()">Ver Resumen de Compra</button>
+
+      <h3>Restricciones:</h3>
+      <ul class="restricciones">
+        <li>Solo se pueden comprar boletos en días laborales.</li>
+        <li>Se requiere vestimenta formal para el acceso.</li>
+      </ul>
+      <p class="restriccion">Los boletos no pueden adquirirse los sábados y domingos.</p>
+
+      <!-- Resumen de compra -->
+      <div id="resumen" class="info" style="display:none;">
+        <h1>Tiket de Compra</h1>
+        <h1>Museo Vaticano</h1>
+        <p>
+          <strong>Fecha seleccionada:</strong>
+          <span id="fechaResumen"></span>
+        </p>
+        <p>
+          <strong>Horario seleccionado:</strong>
+          <span id="horarioResumen"></span>
+        </p>
+        <p>
+          <strong>Cantidad de boletos:</strong>
+          <span id="cantidadResumen"></span>
+        </p>
+        <p>
+          <strong>Método de pago:</strong>
+          <span id="metodoResumen"></span>
+        </p>
+        <!-- Datos de pago -->
+        <div id="datosTarjetaResumen" style="display:none;">
+          <p>
+            <strong>Nombre del titular:</strong>
+            <span id="nombreTitularResumen"></span>
+          </p>
+          <p>
+            <strong>Número de tarjeta:</strong>
+            <span id="numeroTarjetaResumen"></span>
+          </p>
+        </div>
+        <p id="datosPaypalResumen" style="display:none;">
+          <strong>Correo PayPal:</strong>
+          <span id="correoPaypalResumen"></span>
+        </p>
+        <p>
+          <strong>Monto total a pagar:</strong> $
+          <span id="montoResumen"></span>
+        </p>
+        <p>
+          <strong>Restricciones:</strong><br />
+          <span id="restriccionesResumen"></span>
+        </p>
+        <button onclick="comprar()">Comprar</button>
+        <!-- Botones bloqueados hasta confirmar la compra -->
+        <button id="imprimirTicketBtn" onclick="imprimirTicket()" disabled>
+          Imprimir Ticket
+        </button>
+        <button id="whatsappBtn" onclick="mostrarModalTelefono()" disabled>
+          Enviar por WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal para enviar ticket por WhatsApp -->
+    <div id="modalTelefono" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="cerrarModalTelefono()">&times;</span>
+        <h2>Enviar Ticket por WhatsApp</h2>
+        <label for="lada">Lada:</label>
+        <select id="lada">
+          <option value="52">México (52)</option>
+          <option value="1">USA/Canada (1)</option>
+          <option value="34">España (34)</option>
+          <option value="44">Reino Unido (44)</option>
+          <option value="55">Brasil (55)</option>
+          <option value="49">Alemania (49)</option>
+        </select>
+        <br /><br />
+        <label for="telefono">Número de WhatsApp:</label>
+        <input type="text" id="telefono" placeholder="Ej. 5551234567" />
+        <br /><br />
+        <button onclick="redirigirWhatsApp()">Aceptar</button>
+      </div>
+    </div>
+
+    <script>
+      // Calcular el total a pagar ($20 por boleto)
+      function calcularTotal() {
+        var cantidad = document.getElementById("cantidadBoletos").value;
+        var total = cantidad * 20;
+        document.getElementById("totalPagar").innerText = total;
+      }
+      document
+        .getElementById("cantidadBoletos")
+        .addEventListener("input", calcularTotal);
+      calcularTotal();
+
+      // Evitar selección de sábados y domingos en la fecha
+      document.getElementById("fecha").addEventListener("change", function () {
+        var selectedDate = this.valueAsDate;
+        if (selectedDate) {
+          var day = selectedDate.getDay();
+          if (day === 0 || day === 6) {
+            alert(
+              "No se pueden seleccionar sábados o domingos. Por favor, elige otro día."
+            );
+            this.value = "";
+          }
+        }
+      });
+
+      // Mostrar campos de pago según el método seleccionado
+      function mostrarCamposPago() {
+        var metodoPago = document.getElementById("metodoPago").value;
+        document.getElementById("camposTarjeta").style.display = "none";
+        document.getElementById("camposPaypal").style.display = "none";
+        if (metodoPago === "tarjeta") {
+          document.getElementById("camposTarjeta").style.display = "block";
+        } else if (metodoPago === "paypal") {
+          document.getElementById("camposPaypal").style.display = "block";
+        }
+      }
+      // Mostrar por defecto los campos de tarjeta
+      mostrarCamposPago();
+
+      // Mostrar resumen de compra
+      function mostrarResumen() {
+        var fechaInput = document.getElementById("fecha").value;
+        if (!fechaInput) {
+          alert("Por favor, selecciona una fecha.");
+          return;
+        }
+        var fecha = new Date(fechaInput + "T00:00:00");
+        var diaSemana = fecha.getDay();
+        if (diaSemana === 0 || diaSemana === 6) {
+          alert("No puedes comprar boletos los sábados y domingos.");
+          return;
+        }
+        var fechaTexto = fecha.toLocaleDateString();
+        var horario = document.getElementById("horario").value;
+        var cantidad = document.getElementById("cantidadBoletos").value;
+        var metodoValue = document.getElementById("metodoPago").value;
+        var monto = cantidad * 20;
+
+        // Limpiar datos de resumen de pago
+        document.getElementById("datosTarjetaResumen").style.display = "none";
+        document.getElementById("datosPaypalResumen").style.display = "none";
+
+        if (metodoValue === "tarjeta") {
+          var numeroTarjeta = document.getElementById("numeroTarjeta").value;
+          var nombreTitular = document.getElementById("nombreTitular").value;
+          if (numeroTarjeta === "" || nombreTitular === "") {
+            alert("Por favor, ingresa todos los datos de la tarjeta");
+            return;
+          }
+          document.getElementById("nombreTitularResumen").innerText =
+            nombreTitular;
+          document.getElementById("numeroTarjetaResumen").innerText =
+            numeroTarjeta;
+          var metodoText =
+            document.getElementById("metodoPago").selectedOptions[0].text;
+          document.getElementById("metodoResumen").innerText = metodoText;
+          document.getElementById("datosTarjetaResumen").style.display = "block";
+        } else if (metodoValue === "paypal") {
+          var correoPaypal = document.getElementById("correoPaypal").value;
+          if (correoPaypal === "") {
+            alert("Por favor, ingresa tu correo de PayPal");
+            return;
+          }
+          document.getElementById("correoPaypalResumen").innerText =
+            correoPaypal;
+          var metodoText =
+            document.getElementById("metodoPago").selectedOptions[0].text;
+          document.getElementById("metodoResumen").innerText = metodoText;
+          document.getElementById("datosPaypalResumen").style.display = "block";
+        }
+
+        var restricciones =
+          "• Solo se pueden comprar boletos en días laborales.\n" +
+          "• Se requiere vestimenta formal para el acceso.\n" +
+          "• No se venden boletos los sábados y domingos.";
+
+        document.getElementById("fechaResumen").innerText = fechaTexto;
+        document.getElementById("horarioResumen").innerText = horario;
+        document.getElementById("cantidadResumen").innerText = cantidad;
+        document.getElementById("montoResumen").innerText = monto;
+        document.getElementById("restriccionesResumen").innerText = restricciones;
+
+        document.getElementById("resumen").style.display = "block";
+      }
+
+      // Función para simular y guardar la compra en el servidor
+      function comprar() {
+        var metodoValue = document.getElementById("metodoPago").value;
+        if (metodoValue === "tarjeta") {
+          var nombreTitular = document.getElementById("nombreTitular").value;
+          var numeroTarjeta = document.getElementById("numeroTarjeta").value;
+          if (nombreTitular === "" || numeroTarjeta === "") {
+            alert("Por favor, ingresa todos los datos de la tarjeta");
+            return;
+          }
+        } else if (metodoValue === "paypal") {
+          var correoPaypal = document.getElementById("correoPaypal").value;
+          if (correoPaypal === "") {
+            alert("Por favor, ingresa tu correo de PayPal");
+            return;
+          }
+        }
+        guardarCompra();
+      }
+
+      // Función para enviar la compra al servidor mediante el endpoint /api/guardarCompra
+      function guardarCompra() {
+        const eventData = {
+          tipoEvento: document.getElementById("fechaResumen").innerText,
+          ubicacion: "Museo Vaticano",
+          capacidad: 5,
+          horarios: document.getElementById("horarioResumen").innerText,
+          precios:
+            parseFloat(document.getElementById("montoResumen").innerText) /
+            parseInt(document.getElementById("cantidadResumen").innerText),
+          restricciones: document.getElementById("restriccionesResumen").innerText,
+        };
+
+        const metodoPago = document.getElementById("metodoPago").value;
+        let usuarioTransaccion;
+        if (metodoPago === "tarjeta") {
+          usuarioTransaccion = document.getElementById("nombreTitularResumen").innerText;
+        } else {
+          usuarioTransaccion = document.getElementById("correoPaypalResumen").innerText;
+        }
+
+        const transactionData = {
+          usuario: usuarioTransaccion,
+          cantidadBoletos: parseInt(document.getElementById("cantidadResumen").innerText),
+          metodoPago: document.getElementById("metodoResumen").innerText,
+          totalPagado: parseFloat(document.getElementById("montoResumen").innerText),
+          estado: "completado",
+        };
+
+        fetch("http://localhost:3000/api/guardarCompra", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            event: eventData,
+            transaction: transactionData,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert("Compra registrada correctamente!");
+            console.log(data);
+            // Habilitar los botones de imprimir y enviar por WhatsApp
+            document.getElementById("imprimirTicketBtn").disabled = false;
+            document.getElementById("whatsappBtn").disabled = false;
+          })
+          .catch((error) => {
+            console.error("Error al guardar compra:", error);
+            alert("Ocurrió un error al guardar la compra.");
+          });
+      }
+
+      // Función para imprimir el ticket (imprime el contenido del resumen)
+      function imprimirTicket() {
+        const resumen = document.getElementById("resumen");
+        const originalContent = document.body.innerHTML;
+        document.body.innerHTML = resumen.innerHTML;
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload();
+      }
+
+      // Función para mostrar el modal de WhatsApp
+      function mostrarModalTelefono() {
+        document.getElementById("modalTelefono").style.display = "flex";
+      }
+
+      // Función para cerrar el modal de WhatsApp
+      function cerrarModalTelefono() {
+        document.getElementById("modalTelefono").style.display = "none";
+      }
+
+      // Función para generar el PDF usando jsPDF
+      async function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("Tiket de Compra", 20, 20);
+        doc.setFontSize(12);
+        doc.text("Museo Vaticano", 20, 30);
+        doc.text("Fecha seleccionada: " + document.getElementById("fechaResumen").innerText, 20, 40);
+        doc.text("Horario seleccionado: " + document.getElementById("horarioResumen").innerText, 20, 50);
+        doc.text("Cantidad de boletos: " + document.getElementById("cantidadResumen").innerText, 20, 60);
+        doc.text("Método de pago: " + document.getElementById("metodoResumen").innerText, 20, 70);
+        if (document.getElementById("datosTarjetaResumen").style.display === "block") {
+          doc.text("Nombre del titular: " + document.getElementById("nombreTitularResumen").innerText, 20, 80);
+          doc.text("Número de tarjeta: " + document.getElementById("numeroTarjetaResumen").innerText, 20, 90);
+        } else {
+          doc.text("Correo de PayPal: " + document.getElementById("correoPaypalResumen").innerText, 20, 80);
+        }
+        doc.text("Monto total: $" + document.getElementById("montoResumen").innerText, 20, 100);
+        doc.text("Restricciones: " + document.getElementById("restriccionesResumen").innerText, 20, 110);
+        return doc.output("bloburl");
+      }
+
+      // Función para redirigir a WhatsApp con el mensaje preconfigurado e incluir el enlace al PDF
+      async function redirigirWhatsApp() {
+        var lada = document.getElementById("lada").value;
+        var telefono = document.getElementById("telefono").value.trim();
+        if (!telefono) {
+          alert("Por favor, ingresa tu número de WhatsApp.");
+          return;
+        }
+        var fullNumber = lada + telefono;
+        let pdfBlobUrl;
+        try {
+          pdfBlobUrl = await generarPDF();
+        } catch (error) {
+          console.error(error);
+          alert("Ocurrió un error al generar el PDF.");
+          return;
+        }
+        var fecha = document.getElementById("fechaResumen").innerText;
+        var horario = document.getElementById("horarioResumen").innerText;
+        var cantidad = document.getElementById("cantidadResumen").innerText;
+        var metodo = document.getElementById("metodoResumen").innerText;
+        var monto = document.getElementById("montoResumen").innerText;
+        var restricciones = document.getElementById("restriccionesResumen").innerText;
+        var datosPago = "";
+        if (document.getElementById("datosTarjetaResumen").style.display === "block") {
+          datosPago =
+            "Nombre del titular: " +
+            document.getElementById("nombreTitularResumen").innerText +
+            "\n" +
+            "Número de tarjeta: " +
+            document.getElementById("numeroTarjetaResumen").innerText;
+        } else {
+          datosPago =
+            "Correo de PayPal: " +
+            document.getElementById("correoPaypalResumen").innerText;
+        }
+        var mensaje =
+          "🎫 *Ticket de Compra* 🎫\n\n" +
+          "🎫 *Museo Vaticano* 🎫\n\n" +
+          "• 📆 *Fecha seleccionada:* " +
+          fecha +
+          "\n" +
+          "• ⏰ *Horario seleccionado:* " +
+          horario +
+          "\n" +
+          "• 🔢 *Cantidad de boletos:* " +
+          cantidad +
+          "\n" +
+          "• 💳 *Método de pago:* " +
+          metodo +
+          "\n" +
+          "• 💰 *Datos de pago:*\n" +
+          datosPago +
+          "\n" +
+          "• 💲 *Monto total:* $" +
+          monto +
+          "\n" +
+          "• 🚫 *Restricciones:*\n" +
+          restricciones +
+          "\n\n" +
+          "👉 *Descarga tu ticket en PDF aquí:* " +
+          pdfBlobUrl +
+          "\n\n" +
+          "⚠️ *AVISO IMPORTANTE:*\n" +
+          "• Si el enlace no funciona, copia y pega el link en tu navegador.\n" +
+          "• El enlace de descarga es temporal y expirará en 1 hora.";
+        var encodedMensaje = encodeURIComponent(mensaje);
+        var url = "https://wa.me/" + fullNumber + "?text=" + encodedMensaje;
+        window.open(url, "_blank");
+        cerrarModalTelefono();
+      }
+
+      // Inicializar funciones en carga
+      calcularTotal();
+      mostrarCamposPago();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compra de Boletos - Cinépolis</title>
+    <link rel="stylesheet" href="../src/css/teatroColon.css" />
+    <style>
+      .seat-selection {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr); 
+        grid-gap: 5px;
+        margin-top: 20px;
+        grid-template-rows: repeat(10, 40px);
+        position: relative;
+        margin-left: 40px;
+      }
+      .seat {
+        width: 40px;
+        height: 40px;
+        background-color: #ccc;
+        border-radius: 5px;
+        text-align: center;
+        line-height: 40px;
+        cursor: pointer;
+        position: relative;
+      }
+      .selected {
+        background-color: #00ff00;
+      }
+      .occupied {
+        background-color: #ff0000;
+        cursor: not-allowed;
+      }
+      .screen {
+        grid-column: 1 / span 10;
+        background-color: #333;
+        height: 30px;
+        margin-top: 20px;
+        text-align: center;
+        color: white;
+        font-weight: bold;
+        line-height: 30px;
+      }
+      .row-label {
+        position: absolute;
+        top: 0;
+        right: -40px;
+        width: 30px;
+        height: 40px;
+        text-align: center;
+        line-height: 40px;
+        font-weight: bold;
+      }
+      .payment-section {
+        margin-top: 20px;
+      }
+      /* Estilos para el modal de WhatsApp */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 300px;
+        text-align: center;
+      }
+      .close {
+        float: right;
+        cursor: pointer;
+        font-size: 24px;
+      }
+    </style>
+    <!-- Se incluye jsPDF desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="menu-wrapper">
+      <h1>Compra de Boletos - Cinemark</h1>
+      
+      <label for="pelicula">Selecciona una película:</label>
+      <select id="pelicula">
+        <option value="Avatar 2 (PG-13)">Avatar 2 (PG-13)</option>
+        <option value="Batman (PG-13)">Batman (PG-13)</option>
+        <option value="Spiderman (PG-13)">Spiderman (PG-13)</option>
+      </select>
+      
+      <label for="servicio">Selecciona el tipo de servicio:</label>
+      <select id="servicio" onchange="actualizarHorariosYCapacidad()">
+        <option value="Tradicional">Tradicional ($10)</option>
+        <option value="VIP">VIP ($20)</option>
+        <option value="4DX">4DX ($25)</option>
+        <option value="IMAX">IMAX ($30)</option>
+      </select>
+      
+      <label for="horarios">Selecciona un horario:</label>
+      <select id="horarios">
+        <!-- Se llenará dinámicamente según el servicio elegido -->
+      </select>
+      
+      <label for="restricciones">Restricciones de acceso:</label>
+      <ul id="restricciones">
+        <!-- Se llenará dinámicamente según el servicio elegido -->
+      </ul>
+
+      <label for="cantidad">Cantidad de boletos (Máximo 10):</label>
+      <input type="number" id="cantidad" min="1" max="10" value="1" onchange="actualizarAsientos()">
+      
+      <!-- Cuadrícula de selección de asientos -->
+      <div id="seatWrapper" class="seat-selection">
+        <!-- Los asientos se generarán dinámicamente -->
+      </div>
+      
+      <div class="screen">Pantalla</div>
+      
+      <div class="payment-section">
+        <label for="metodoPago">Método de pago:</label>
+        <select id="metodoPago" onchange="mostrarCamposPago()">
+          <option value="debito">Tarjeta de Débito</option>
+          <option value="credito">Tarjeta de Crédito</option>
+          <option value="paypal">PayPal</option>
+        </select>
+      </div>
+      
+      <!-- Campos de pago dinámicos -->
+      <div id="camposPago"></div>
+      
+      <button onclick="mostrarResumen()">Ver Resumen de Compra</button>
+      
+      <div id="resumen" class="info" style="display:none;">
+        <h1>Tiket de Compra</h1>
+        <h1>Cinemark</h1>
+        <p><strong>Película:</strong> <span id="peliculaResumen"></span></p>
+        <p><strong>Tipo de servicio:</strong> <span id="servicioResumen"></span></p>
+        <p><strong>Horario seleccionado:</strong> <span id="horarioResumen"></span></p>
+        <p><strong>Cantidad de boletos:</strong> <span id="cantidadResumen"></span></p>
+        <p><strong>Asientos seleccionados:</strong> <span id="asientosResumen"></span></p>
+        <p><strong>Monto total a pagar:</strong> $<span id="montoResumen"></span></p>
+        <p><strong>Restricciones:</strong> <span id="restriccionesResumen"></span></p>
+        <p>
+          <strong>Datos de pago:</strong>
+        </p>
+        <p><strong>Método de pago:</strong> <span id="metodoResumen"></span></p>
+        <p><strong>Nombre del titular:</strong> <span id="nombreTitularResumen"></span></p>
+        <p><strong>Número de tarjeta:</strong> <span id="numeroTarjetaResumen"></span></p>
+
+        <!-- Al confirmar la compra se guardará la información en el servidor -->
+        <button onclick="realizarCompra()">Comprar</button>
+        <!-- Botones bloqueados hasta confirmar la compra -->
+        <button id="imprimirTicketBtn" onclick="imprimirTicket()" disabled>Imprimir Ticket</button>
+        <button id="whatsappBtn" onclick="mostrarModalTelefono()" disabled>Enviar por WhatsApp</button>
+      </div>
+    </div>
+
+    <!-- Modal para WhatsApp -->
+    <div id="modalTelefono" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="cerrarModalTelefono()">&times;</span>
+        <h2>Enviar Ticket por WhatsApp</h2>
+        <label for="lada">Lada:</label>
+        <select id="lada">
+          <option value="52">México (52)</option>
+          <option value="1">USA/Canada (1)</option>
+          <option value="34">España (34)</option>
+          <option value="44">Reino Unido (44)</option>
+          <option value="55">Brasil (55)</option>
+          <option value="49">Alemania (49)</option>
+        </select>
+        <br /><br />
+        <label for="telefono">Número de WhatsApp:</label>
+        <input type="text" id="telefono" placeholder="Ej. 5551234567">
+        <br /><br />
+        <button onclick="redirigirWhatsApp()">Aceptar</button>
+      </div>
+    </div>
+
+    <script>
+      // Capacidad por servicio
+      const capacidades = {
+        "Tradicional": 100,
+        "VIP": 50,
+        "4DX": 30,
+        "IMAX": 40
+      };
+
+      // Horarios disponibles por servicio
+      const horariosPorServicio = {
+        "Tradicional": ["10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM"],
+        "VIP": ["11:00 AM", "2:00 PM", "5:00 PM", "8:00 PM"],
+        "4DX": ["12:00 PM", "3:00 PM", "6:00 PM"],
+        "IMAX": ["10:30 AM", "1:30 PM", "4:30 PM"]
+      };
+
+      // Restricciones por servicio
+      const restriccionesPorServicio = {
+        "Tradicional": ["No se permite comer dentro de la sala.", "No se permiten teléfonos móviles durante la función."],
+        "VIP": ["Restricciones de vestimenta: Elegante.", "Acceso exclusivo a bebidas premium."],
+        "4DX": ["Se recomienda no llevar objetos frágiles.", "No se permiten personas con problemas de movilidad."],
+        "IMAX": ["Requiere lentes 3D (proporcionados en el cine).", "No se permite el ingreso con mochilas grandes."]
+      };
+
+      // Actualiza horarios, restricciones y capacidad según el servicio
+      function actualizarHorariosYCapacidad() {
+        const servicio = document.getElementById('servicio').value;
+        const horariosSelect = document.getElementById('horarios');
+        const cantidadInput = document.getElementById('cantidad');
+        const capacidad = capacidades[servicio];
+        const restriccionesList = document.getElementById('restricciones');
+
+        // Actualizar horarios
+        horariosSelect.innerHTML = '';
+        horariosPorServicio[servicio].forEach(horario => {
+          const option = document.createElement('option');
+          option.value = horario;
+          option.innerText = horario;
+          horariosSelect.appendChild(option);
+        });
+
+        // Establecer capacidad máxima
+        cantidadInput.max = capacidad;
+
+        // Actualizar restricciones
+        restriccionesList.innerHTML = '';
+        restriccionesPorServicio[servicio].forEach(restriccion => {
+          const li = document.createElement('li');
+          li.innerText = restriccion;
+          restriccionesList.appendChild(li);
+        });
+      }
+
+      // Actualiza la cuadrícula de asientos según la cantidad de boletos
+      function actualizarAsientos() {
+        const cantidad = parseInt(document.getElementById('cantidad').value);
+        const seatWrapper = document.getElementById('seatWrapper');
+        seatWrapper.innerHTML = '';
+
+        const capacidad = capacidades[document.getElementById('servicio').value];
+        if (cantidad > capacidad) {
+          alert('La cantidad de boletos excede la capacidad disponible.');
+          document.getElementById('cantidad').value = capacidad;
+          return;
+        }
+
+        const filas = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+        const columnas = 10;
+        for (let fila of filas) {
+          for (let col = 1; col <= columnas; col++) {
+            const seat = document.createElement('div');
+            seat.classList.add('seat');
+            seat.innerText = col;
+            seat.dataset.fila = fila;
+            seat.addEventListener('click', () => {
+              if (document.querySelectorAll('.seat.selected').length >= cantidad && !seat.classList.contains('selected')) {
+                alert('No puedes seleccionar más asientos.');
+              } else {
+                seat.classList.toggle('selected');
+              }
+            });
+            seatWrapper.appendChild(seat);
+          }
+        }
+        // Agregar etiquetas de filas
+        const filaLabels = document.createElement('div');
+        filaLabels.classList.add('row-label');
+        filas.forEach(fila => {
+          const filaLabel = document.createElement('div');
+          filaLabel.innerText = fila;
+          filaLabels.appendChild(filaLabel);
+        });
+        seatWrapper.appendChild(filaLabels);
+      }
+
+      // Mostrar campos de pago según el método seleccionado
+      function mostrarCamposPago() {
+        const metodoPago = document.getElementById('metodoPago').value;
+        const camposPago = document.getElementById('camposPago');
+        camposPago.innerHTML = '';
+        if (metodoPago === 'debito' || metodoPago === 'credito') {
+          camposPago.innerHTML = `
+            <label for="nombreTitular">Nombre del titular:</label>
+            <input type="text" id="nombreTitular" required>
+            <label for="numeroTarjeta">Número de tarjeta:</label>
+            <input type="text" id="numeroTarjeta" pattern="[0-9]{16}" required>
+          `;
+        } else if (metodoPago === 'paypal') {
+          camposPago.innerHTML = `
+            <label for="emailPaypal">Correo de PayPal:</label>
+            <input type="email" id="emailPaypal" required>
+          `;
+        }
+      }
+
+      // Muestra el resumen de la compra
+      function mostrarResumen() {
+        const pelicula = document.getElementById('pelicula').value;
+        const servicio = document.getElementById('servicio').value;
+        const horario = document.getElementById('horarios').value;
+        const cantidad = document.getElementById('cantidad').value;
+        const asientosSeleccionados = document.querySelectorAll('.seat.selected');
+        const asientosResumen = Array.from(asientosSeleccionados).map(seat => seat.dataset.fila + seat.innerText).join(", ");
+        const montoTotal = calcularMontoTotal(servicio, cantidad);
+        const metodoPago = document.getElementById('metodoPago').value;
+        const restriccionesText = restriccionesPorServicio[servicio].join(" / ");
+        
+        document.getElementById('peliculaResumen').innerText = pelicula;
+        document.getElementById('servicioResumen').innerText = servicio;
+        document.getElementById('horarioResumen').innerText = horario;
+        document.getElementById('cantidadResumen').innerText = cantidad;
+        document.getElementById('asientosResumen').innerText = asientosResumen;
+        document.getElementById('montoResumen').innerText = montoTotal;
+        document.getElementById('restriccionesResumen').innerText = restriccionesText;
+        document.getElementById('metodoResumen').innerText = metodoPago;
+
+        if (metodoPago === 'debito' || metodoPago === 'credito') {
+          document.getElementById('nombreTitularResumen').innerText = document.getElementById('nombreTitular').value;
+          document.getElementById('numeroTarjetaResumen').innerText = document.getElementById('numeroTarjeta').value;
+        } else if (metodoPago === 'paypal') {
+          document.getElementById('nombreTitularResumen').innerText = document.getElementById('emailPaypal').value;
+          document.getElementById('numeroTarjetaResumen').innerText = 'N/A';
+        }
+        document.getElementById('resumen').style.display = 'block';
+      }
+
+      // Calcula el monto total a pagar
+      function calcularMontoTotal(servicio, cantidad) {
+        const precios = {
+          "Tradicional": 10,
+          "VIP": 20,
+          "4DX": 25,
+          "IMAX": 30
+        };
+        return precios[servicio] * cantidad;
+      }
+
+      // Función para realizar la compra: valida los datos y luego guarda la compra en el servidor.
+      function realizarCompra() {
+        const metodo = document.getElementById('metodoPago').value;
+        if (metodo === 'debito' || metodo === 'credito') {
+          if (!document.getElementById('nombreTitular').value || !document.getElementById('numeroTarjeta').value) {
+            alert("Por favor, complete los campos de la tarjeta.");
+            return;
+          }
+        } else if (metodo === 'paypal') {
+          if (!document.getElementById('emailPaypal').value) {
+            alert("Por favor, ingrese su correo de PayPal.");
+            return;
+          }
+        }
+        // Llamada para guardar la compra en el servidor
+        guardarCompra();
+      }
+
+      // Función para enviar la compra al servidor y guardarla en la base de datos
+      function guardarCompra() {
+        // Crear el objeto eventData a guardar
+        const eventData = {
+          tipoEvento: document.getElementById("peliculaResumen").innerText,
+          ubicacion: "Cinemark",
+          capacidad: capacidades[document.getElementById("servicio").value],
+          horarios: document.getElementById("horarioResumen").innerText,
+          precios: parseFloat(document.getElementById("montoResumen").innerText) / parseInt(document.getElementById("cantidadResumen").innerText),
+          restricciones: document.getElementById("restriccionesResumen").innerText
+        };
+
+        // Determinar el usuario a grabar según el método de pago:
+        // Si es tarjeta se guarda el nombre del titular; si es PayPal se guarda el correo.
+        const metodoPago = document.getElementById("metodoPago").value;
+        let usuarioTransaccion;
+        if (metodoPago === "debito" || metodoPago === "credito") {
+          usuarioTransaccion = document.getElementById("nombreTitularResumen").innerText;
+        } else {
+          usuarioTransaccion = document.getElementById("nombreTitularResumen").innerText;
+        }
+
+        const transactionData = {
+          usuario: usuarioTransaccion,
+          cantidadBoletos: parseInt(document.getElementById("cantidadResumen").innerText),
+          metodoPago: document.getElementById("metodoResumen").innerText,
+          totalPagado: parseFloat(document.getElementById("montoResumen").innerText),
+          estado: "completado"
+        };
+
+        fetch("http://localhost:3000/api/guardarCompra", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            event: eventData,
+            transaction: transactionData
+          })
+        })
+        .then((response) => response.json())
+        .then((data) => {
+          alert("Compra registrada correctamente!");
+          console.log(data);
+          // Habilitar los botones de imprimir y enviar por WhatsApp
+          document.getElementById("imprimirTicketBtn").disabled = false;
+          document.getElementById("whatsappBtn").disabled = false;
+        })
+        .catch((error) => {
+          console.error("Error al guardar compra:", error);
+          alert("Ocurrió un error al guardar la compra.");
+        });
+      }
+
+      // Función para imprimir el ticket (imprime el contenido del resumen)
+      function imprimirTicket() {
+        const resumen = document.getElementById('resumen');
+        const originalContent = document.body.innerHTML;
+        document.body.innerHTML = resumen.innerHTML;
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload();
+      }
+
+      // Función para mostrar el modal para enviar el ticket por WhatsApp
+      function mostrarModalTelefono() {
+        document.getElementById("modalTelefono").style.display = "block";
+      }
+
+      // Función para cerrar el modal de WhatsApp
+      function cerrarModalTelefono() {
+        document.getElementById("modalTelefono").style.display = "none";
+      }
+
+      // Función para generar el PDF usando jsPDF con la información de la compra
+      async function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const servicio = document.getElementById("servicio").value;
+        const restriccionesText = restriccionesPorServicio[servicio].join(" / ");
+
+        doc.setFontSize(16);
+        doc.text("Tiket de Compra", 20, 20);
+        doc.setFontSize(12);
+        doc.text("Cinemark", 20, 30);
+        doc.text("Película: " + document.getElementById("pelicula").value, 20, 40);
+        doc.text("Servicio: " + document.getElementById("servicioResumen").innerText, 20, 50);
+        doc.text("Horario: " + document.getElementById("horarioResumen").innerText, 20, 60);
+        doc.text("Cantidad de boletos: " + document.getElementById("cantidadResumen").innerText, 20, 70);
+        doc.text("Asientos: " + document.getElementById("asientosResumen").innerText, 20, 80);
+        doc.text("Monto total: $" + document.getElementById("montoResumen").innerText, 20, 90);
+        doc.text("Restricciones: " + restriccionesText, 20, 100);
+        doc.text("Método de pago: " + document.getElementById("metodoResumen").innerText, 20, 110);
+        doc.text("Nombre del titular: " + document.getElementById("nombreTitularResumen").innerText, 20, 120);
+        doc.text("Número de tarjeta: " + document.getElementById("numeroTarjetaResumen").innerText, 20, 130);
+        return doc.output("bloburl");
+      }
+
+      // Función para redirigir a WhatsApp con un mensaje preconfigurado (incluye el PDF)
+      async function redirigirWhatsApp() {
+        const lada = document.getElementById("lada").value;
+        const telefono = document.getElementById("telefono").value.trim();
+        if (!telefono) {
+          alert("Por favor ingrese su número de WhatsApp.");
+          return;
+        }
+        const fullNumber = lada + telefono;
+        const pdfBlobUrl = await generarPDF();
+
+        const pelicula = document.getElementById("pelicula").value;
+        const servicio = document.getElementById("servicioResumen").innerText;
+        const horario = document.getElementById("horarioResumen").innerText;
+        const cantidad = document.getElementById("cantidadResumen").innerText;
+        const asientos = document.getElementById("asientosResumen").innerText;
+        const monto = document.getElementById("montoResumen").innerText;
+        const metodo = document.getElementById("metodoResumen").innerText;
+        const nombreTitular = document.getElementById("nombreTitularResumen").innerText;
+        const numeroTarjeta = document.getElementById("numeroTarjetaResumen").innerText;
+        const restriccionesText = document.getElementById("restriccionesResumen").innerText;
+
+        const mensaje = "🎫 *Tiket de Compra* 🎫\n\n" +
+                        "🎥 *Cinemark* 🎥\n\n" +
+                        "• 🍿 *Película:* " + pelicula + "\n" +
+                        "• 🎟️ *Servicio:* " + servicio + "\n" +
+                        "• ⏰ *Horario:* " + horario + "\n" +
+                        "• 🔢 *Cantidad:* " + cantidad + "\n" +
+                        "• 💺 *Asientos:* " + asientos + "\n" +
+                        "• 💲 *Monto total:* $" + monto + "\n" +
+                        "• 🚫 *Restricciones:* " + restriccionesText + "\n" +
+                        "• 💳 *Método de pago:* " + metodo + "\n" +
+                        "• 👤 *Nombre del titular:* " + nombreTitular + "\n" +
+                        "• 🔢 *Número de tarjeta:* " + numeroTarjeta + "\n\n" +
+                        "👉 *Descarga tu ticket en PDF aquí:* " + pdfBlobUrl + "\n\n" +
+                        "⚠️ *AVISO IMPORTANTE:*\n" +
+                        "• Si el enlace no funciona, copia y pega el link en tu navegador.\n" +
+                        "• El enlace de descarga es temporal y expirará en 1 hora.";
+        const encodedMensaje = encodeURIComponent(mensaje);
+        const url = "https://wa.me/" + fullNumber + "?text=" + encodedMensaje;
+        window.open(url, "_blank");
+        cerrarModalTelefono();
+      }
+
+      // Inicializar funciones en carga
+      actualizarHorariosYCapacidad();
+      actualizarAsientos();
+      mostrarCamposPago();
+    </script>
+  </body>
+</html>

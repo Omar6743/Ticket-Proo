@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - TicketMaster</title>
+  <!-- Vincula tu CSS externo -->
+  <link rel="stylesheet" href="../src/css/login.css" />
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-container">
+      <h1>Bienvenido a TicketMaster</h1>
+      <h2>Inicia sesión para continuar</h2>
+
+      <!-- Instrucciones para el usuario -->
+      <div class="instructions">
+        <h3>Instrucciones para Crear su Usuario y Contraseña</h3>
+        <div class="instruction-content">
+          <ul>
+            <li><strong>Usuario:</strong></li>
+            <li>- Debe tener exactamente 20 caracteres y estar en mayúsculas.</li>
+            <li>- Debe seguir el formato del CURP con 2 letras adicionales del estado de nacimiento.</li>
+            <li>- Ejemplo válido: ABCD900101HDFRRLJ01</li>
+            <li>- 📌 Formato esperado:
+              [4 Letras] + [6 Números] + [1 Letra] + [2 Letras] + [4 Letras/Números] + [2 Letras del Estado] + [1 Número]
+            </li>
+          </ul>
+          <ul>
+            <li><strong>Contraseña:</strong></li>
+            <li>- Debe tener exactamente 8 caracteres.</li>
+            <li>- Debe contener una mayúscula, una minúscula, un número y un carácter especial.</li>
+            <li>- Ejemplo válido: Abc123$%</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Formulario de inicio de sesión -->
+      <form id="loginForm">
+        <!-- Menú desplegable de estado -->
+        <div class="input-container">
+          <label for="estadoSelect">Selecciona tu Estado de Nacimiento:</label>
+          <select id="estadoSelect" required>
+            <option value="">--Selecciona un Estado--</option>
+            <option value="AS">AGUASCALIENTES (AS)</option>
+            <option value="BC">BAJA CALIFORNIA (BC)</option>
+            <option value="BS">BAJA CALIFORNIA SUR (BS)</option>
+            <option value="CC">CAMPECHE (CC)</option>
+            <option value="CL">COAHUILA (CL)</option>
+            <option value="CM">COLIMA (CM)</option>
+            <option value="CS">CHIAPAS (CS)</option>
+            <option value="CH">CHIHUAHUA (CH)</option>
+            <option value="DF">CIUDAD DE MÉXICO (DF)</option>
+            <option value="DG">DURANGO (DG)</option>
+            <option value="GT">GUANAJUATO (GT)</option>
+            <option value="GR">GUERRERO (GR)</option>
+            <option value="HG">HIDALGO (HG)</option>
+            <option value="JC">JALISCO (JC)</option>
+            <option value="MC">ESTADO DE MÉXICO (MC)</option>
+            <option value="MN">MICHOACÁN (MN)</option>
+            <option value="MS">MORELOS (MS)</option>
+            <option value="NT">NAYARIT (NT)</option>
+            <option value="NL">NUEVO LEÓN (NL)</option>
+            <option value="OC">OAXACA (OC)</option>
+            <option value="PL">PUEBLA (PL)</option>
+            <option value="QT">QUERÉTARO (QT)</option>
+            <option value="QR">QUINTANA ROO (QR)</option>
+            <option value="SP">SAN LUIS POTOSÍ (SP)</option>
+            <option value="SL">SINALOA (SL)</option>
+            <option value="SR">SONORA (SR)</option>
+            <option value="TC">TABASCO (TC)</option>
+            <option value="TS">TAMAULIPAS (TS)</option>
+            <option value="TL">TLAXCALA (TL)</option>
+            <option value="VZ">VERACRUZ (VZ)</option>
+            <option value="YN">YUCATÁN (YN)</option>
+            <option value="ZS">ZACATECAS (ZS)</option>
+          </select>
+        </div>
+
+        <!-- Campo de usuario -->
+        <div class="input-container">
+          <label for="usuario">Usuario:</label>
+          <input type="text" id="usuario" placeholder="Ingrese su usuario" required />
+          <div id="usuarioError" style="color: red; display: none;"></div>
+        </div>
+
+        <!-- Campo de contraseña -->
+        <div class="input-container">
+          <label for="contrasena">Contraseña:</label>
+          <div class="password-wrapper">
+            <input type="password" id="contrasena" placeholder="Ingrese su contraseña" required />
+            <button type="button" class="toggle-password-btn" id="togglePassword" onclick="togglePasswordVisibility()">Mostrar</button>
+          </div>
+          <div id="contrasenaError" style="color: red; display: none;"></div>
+        </div>
+
+        <!-- Botones (separados con márgenes) -->
+        <div class="btn-container">
+          <button type="button" id="iniciarSesionBtn">Iniciar sesión</button>
+          <button type="button" id="registrarseBtn">Registrar usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Vincular el archivo JS -->
+  <script src="../src/js/Login.js"></script>
+</body>
+</html>

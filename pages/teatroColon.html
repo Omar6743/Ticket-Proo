@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teatro Colón - Buenos Aires</title>
+    <link rel="stylesheet" href="../src/css/teatroColon.css" />
+    <style>
+      /* Estilos para el modal de teléfono */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 300px;
+        text-align: center;
+      }
+      .close {
+        float: right;
+        cursor: pointer;
+        font-size: 24px;
+      }
+    </style>
+    <!-- Se incluye jsPDF desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="menu-wrapper">
+      <h1>Teatro Colón - Buenos Aires</h1>
+      <h2>Obras Disponibles:</h2>
+      <select id="obraScala">
+        <option value="La Traviata">La Traviata</option>
+        <option value="Othello">Othello</option>
+        <option value="Don Giovanni">Don Giovanni</option>
+      </select>
+      <h3>Horarios de Servicio:</h3>
+      <p>
+        Lunes a Sábado de 10:00 a 22:00. Cerrado los días festivos: 25 de
+        diciembre y 1 de enero.
+      </p>
+      <div class="detalle">
+        <h3>Seleccionar sección:</h3>
+        <select id="seccion">
+          <option value="Palco">Palco ($80)</option>
+          <option value="Luneta">Luneta ($60)</option>
+          <option value="Galería">Galería ($40)</option>
+        </select>
+        <h3>Capacidad máxima: 2500 personas</h3>
+        <h3>Cantidad de boletos compra máxima (10 Boletos):</h3>
+        <input type="number" id="cantidadBoletos" value="1" min="1" max="10" />
+        <h3>Seleccionar método de pago:</h3>
+        <select id="metodoPago">
+          <option value="debito">Tarjeta Débito</option>
+          <option value="credito">Tarjeta Crédito</option>
+          <option value="paypal">PayPal</option>
+        </select>
+        <div id="tarjetaForm" style="display:block;">
+          <h3>Ingrese los datos de la tarjeta:</h3>
+          <input type="text" id="nombreTarjeta" placeholder="Nombre del titular" required />
+          <input type="number" id="numeroTarjeta" placeholder="Número de tarjeta" required />
+        </div>
+        <div id="paypalForm" style="display:none;">
+          <h3>Ingrese su email de PayPal:</h3>
+          <input type="email" id="emailPaypal" placeholder="Email de PayPal" required />
+        </div>
+        <!-- Botón para ver el resumen de compra -->
+        <button id="comprarBtn" onclick="procesarCompra()">Ver resumen de compra</button>
+      </div>
+      <div id="resumen" class="info" style="display:none;">
+        <h1>Ticket de Compra</h1>
+        <h1>Teatro Colón - Buenos Aires</h1>
+        <!-- Se agrega la obra seleccionada -->
+        <p><strong>Obra:</strong> <span id="obraResumen"></span></p>
+        <p><strong>Método de pago:</strong> <span id="metodoResumen"></span></p>
+        <p><strong>Cantidad de boletos:</strong> <span id="cantidadResumen"></span></p>
+        <p><strong>Sección seleccionada:</strong> <span id="seccionResumen"></span></p>
+        <p><strong>Monto total a pagar:</strong> $<span id="montoResumen"></span></p>
+        <p>
+          <strong>Restricciones:</strong> No acceso con mochilas grandes.
+          Horario de entrada: 9:00 AM.
+        </p>
+        <p>
+          <strong>Restricciones de vestimenta:</strong> No se permite ropa
+          deportiva ni jeans rotos.
+        </p>
+        <p><strong>Datos de tarjeta:</strong></p>
+        <p><strong>Nombre del titular:</strong> <span id="nombreTarjetaResumen"></span></p>
+        <p><strong>Número de tarjeta:</strong> <span id="numeroTarjetaResumen"></span></p>
+        <!-- Al confirmar la compra, se guarda info y se habilitan estos botones -->
+        <button onclick="realizarCompra()">Confirmar Compra</button>
+        <button id="imprimirTicketBtn" onclick="imprimirTicket()" disabled>Imprimir Ticket</button>
+        <button id="whatsappBtn" onclick="mostrarModalTelefono()" disabled>Enviar por WhatsApp</button>
+      </div>
+    </div>
+    <!-- Modal para el número de WhatsApp -->
+    <div id="modalTelefono" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="cerrarModalTelefono()">&times;</span>
+        <h2>Enviar Ticket por WhatsApp</h2>
+        <label for="lada">Lada:</label>
+        <select id="lada">
+          <option value="52">México (52)</option>
+          <option value="1">USA/Canada (1)</option>
+          <option value="34">España (34)</option>
+          <option value="44">Reino Unido (44)</option>
+          <option value="55">Brasil (55)</option>
+          <option value="49">Alemania (49)</option>
+        </select>
+        <br /><br />
+        <label for="telefono">Número de WhatsApp:</label>
+        <input type="text" id="telefono" placeholder="Ej. 5551234567" />
+        <br /><br />
+        <button onclick="redirigirWhatsApp()">Aceptar</button>
+      </div>
+    </div>
+    <script>
+      // Mostrar/ocultar formularios según el método de pago
+      document.getElementById("metodoPago").addEventListener("change", function () {
+        const metodo = this.value;
+        if (metodo === "paypal") {
+          document.getElementById("tarjetaForm").style.display = "none";
+          document.getElementById("paypalForm").style.display = "block";
+        } else {
+          document.getElementById("tarjetaForm").style.display = "block";
+          document.getElementById("paypalForm").style.display = "none";
+        }
+      });
+
+      // Función para mostrar el resumen de compra
+      function mostrarResumen() {
+        const seccion = document.getElementById("seccion").value;
+        const cantidad = document.getElementById("cantidadBoletos").value;
+        const metodoPago = document.getElementById("metodoPago").value;
+        const monto = cantidad * (seccion === "Palco" ? 80 : seccion === "Luneta" ? 60 : 40);
+
+        if (cantidad > 10) {
+          alert("Solo puedes comprar hasta 10 boletos.");
+          return;
+        }
+
+        document.getElementById("obraResumen").innerText = document.getElementById("obraScala").value;
+        document.getElementById("seccionResumen").innerText = seccion;
+        document.getElementById("cantidadResumen").innerText = cantidad;
+        document.getElementById("montoResumen").innerText = monto;
+
+        if (metodoPago === "debito" || metodoPago === "credito") {
+          const nombreTarjeta = document.getElementById("nombreTarjeta").value;
+          const numeroTarjeta = document.getElementById("numeroTarjeta").value;
+          document.getElementById("metodoResumen").innerText = metodoPago === "debito" ? "Tarjeta Débito" : "Tarjeta Crédito";
+          document.getElementById("nombreTarjetaResumen").innerText = nombreTarjeta;
+          document.getElementById("numeroTarjetaResumen").innerText = numeroTarjeta;
+        } else {
+          const emailPaypal = document.getElementById("emailPaypal").value;
+          document.getElementById("metodoResumen").innerText = "PayPal";
+          document.getElementById("nombreTarjetaResumen").innerText = emailPaypal;
+          document.getElementById("numeroTarjetaResumen").innerText = "N/A";
+        }
+        document.getElementById("resumen").style.display = "block";
+      }
+
+      // Función que procesa la compra y muestra el resumen
+      function procesarCompra() {
+        mostrarResumen(); // Muestra el resumen de la información ingresada
+      }
+
+      // Función para realizar la compra (confirma y guarda la información)
+      function realizarCompra() {
+        const metodoPago = document.getElementById("metodoPago").value;
+        if (metodoPago === "debito" || metodoPago === "credito") {
+          const nombreTarjeta = document.getElementById("nombreTarjeta").value;
+          const numeroTarjeta = document.getElementById("numeroTarjeta").value;
+          if (nombreTarjeta === "" || numeroTarjeta === "") {
+            alert("Por favor, ingrese todos los datos de la tarjeta");
+            return;
+          }
+        } else {
+          const emailPaypal = document.getElementById("emailPaypal").value;
+          if (emailPaypal === "") {
+            alert("Por favor, ingrese su email de PayPal");
+            return;
+          }
+        }
+        // Llamada para guardar la compra en el servidor
+        guardarCompra();
+      }
+
+      // Función para enviar la compra al servidor
+      function guardarCompra() {
+        const eventData = {
+          tipoEvento: document.getElementById("obraResumen").innerText,
+          ubicacion: "Buenos Aires",
+          capacidad: 2500,
+          horarios: "Lunes a Sábado de 10:00 a 22:00",
+          precios: parseFloat(document.getElementById("montoResumen").innerText) / parseInt(document.getElementById("cantidadResumen").innerText),
+          restricciones: "No acceso con mochilas grandes. Horario de entrada: 9:00 AM. No se permite ropa deportiva ni jeans rotos."
+        };
+
+        // Determina el usuario a grabar: si es tarjeta, se guarda el nombre del titular; si es PayPal, se guarda el correo.
+        const metodoPago = document.getElementById("metodoPago").value;
+        let usuarioTransaccion;
+        if (metodoPago === "debito" || metodoPago === "credito") {
+          usuarioTransaccion = document.getElementById("nombreTarjetaResumen").innerText;
+        } else {
+          usuarioTransaccion = document.getElementById("nombreTarjetaResumen").innerText;
+        }
+
+        const transactionData = {
+          usuario: usuarioTransaccion,
+          cantidadBoletos: parseInt(document.getElementById("cantidadResumen").innerText),
+          metodoPago: document.getElementById("metodoResumen").innerText,
+          totalPagado: parseFloat(document.getElementById("montoResumen").innerText),
+          estado: "completado"
+        };
+
+        fetch("http://localhost:3000/api/guardarCompra", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            event: eventData,
+            transaction: transactionData
+          })
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert("Compra registrada correctamente!");
+            console.log(data);
+            // Habilitar los botones de imprimir y enviar por WhatsApp
+            document.getElementById("imprimirTicketBtn").disabled = false;
+            document.getElementById("whatsappBtn").disabled = false;
+          })
+          .catch((error) => {
+            console.error("Error al guardar compra:", error);
+            alert("Ocurrió un error al guardar la compra.");
+          });
+      }
+
+      // Función para imprimir el ticket (imprime el contenido de 'resumen')
+      function imprimirTicket() {
+        const resumen = document.getElementById("resumen");
+        const originalContent = document.body.innerHTML;
+        document.body.innerHTML = resumen.innerHTML;
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload();
+      }
+
+      // Función para mostrar el modal para ingresar el número de WhatsApp
+      function mostrarModalTelefono() {
+        document.getElementById("modalTelefono").style.display = "block";
+      }
+
+      // Función para cerrar el modal de WhatsApp
+      function cerrarModalTelefono() {
+        document.getElementById("modalTelefono").style.display = "none";
+      }
+
+      // Función para generar PDF usando jsPDF
+      async function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("Ticket de Compra", 20, 20);
+        doc.setFontSize(12);
+        doc.text("Teatro Colón - Buenos Aires", 20, 30);
+        doc.text("Obra: " + document.getElementById("obraScala").value, 20, 40);
+        doc.text("Sección: " + document.getElementById("seccionResumen").innerText, 20, 50);
+        doc.text("Cantidad de boletos: " + document.getElementById("cantidadResumen").innerText, 20, 60);
+        doc.text("Monto total: $" + document.getElementById("montoResumen").innerText, 20, 70);
+        doc.text("Método de pago: " + document.getElementById("metodoResumen").innerText, 20, 80);
+        doc.text("Nombre del titular/Email: " + document.getElementById("nombreTarjetaResumen").innerText, 20, 90);
+        doc.text("Número de tarjeta: " + document.getElementById("numeroTarjetaResumen").innerText, 20, 100);
+        doc.text("Restricciones: No acceso con mochilas grandes. Horario de entrada: 9:00 AM.", 20, 110);
+        doc.text("Restricciones de vestimenta: No se permite ropa deportiva ni jeans rotos.", 20, 120);
+        return doc.output("bloburl");
+      }
+
+      // Función para redirigir a WhatsApp con mensaje preconfigurado (incluye PDF)
+      async function redirigirWhatsApp() {
+        const lada = document.getElementById("lada").value;
+        const telefono = document.getElementById("telefono").value.trim();
+        if (!telefono) {
+          alert("Por favor ingresa tu número de WhatsApp.");
+          return;
+        }
+        const fullNumber = lada + telefono;
+        const pdfBlobUrl = await generarPDF();
+        const obra = document.getElementById("obraScala").value;
+        const seccion = document.getElementById("seccionResumen").innerText;
+        const cantidad = document.getElementById("cantidadResumen").innerText;
+        const monto = document.getElementById("montoResumen").innerText;
+        const metodo = document.getElementById("metodoResumen").innerText;
+        const nombreTarjeta = document.getElementById("nombreTarjetaResumen").innerText;
+        const numeroTarjeta = document.getElementById("numeroTarjetaResumen").innerText;
+        const mensaje =
+          "🎫 *Ticket de Compra* 🎫\n\n" +
+          "🎫 *Teatro Colón - Buenos Aires* 🎫\n\n" +
+          "• 🎭 *Obra:* " + obra + "\n" +
+          "• 💺 *Sección:* " + seccion + "\n" +
+          "• 🔢 *Cantidad:* " + cantidad + "\n" +
+          "• 💲 *Monto total:* $" + monto + "\n" +
+          "• 💳 *Método de pago:* " + metodo + "\n" +
+          "• 👤 *Nombre del titular/Email:* " + nombreTarjeta + "\n" +
+          "• 🔢 *Número de tarjeta:* " + numeroTarjeta + "\n" +
+          "• 🚫 *Restricciones:* No acceso con mochilas grandes. Horario de entrada: 9:00 AM.\n" +
+          "• 👔 *Restricciones de vestimenta:* No se permite ropa deportiva ni jeans rotos.\n\n" +
+          "👉 *Descarga tu ticket en PDF aquí:* " + pdfBlobUrl + "\n\n" +
+          "⚠️ *AVISO IMPORTANTE:*\n" +
+          "• Si el enlace no funciona, copia y pega el link en tu navegador.\n" +
+          "• El enlace de descarga es temporal y expirará en 1 hora.";
+        const encodedMensaje = encodeURIComponent(mensaje);
+        const url = "https://wa.me/" + fullNumber + "?text=" + encodedMensaje;
+        window.open(url, "_blank");
+        cerrarModalTelefono();
+      }
+    </script>
+  </body>
+</html>

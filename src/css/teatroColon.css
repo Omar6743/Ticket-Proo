@@ -1,0 +1,222 @@
+/* Estilos globales */
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #003366; /* Azul Cinepolis */
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Contenedor principal del menú */
+  .menu-wrapper {
+    width: 80%;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Títulos */
+  h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  
+  h2, h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    font-weight: normal;
+  }
+  
+  p, span {
+    color: #777;
+    font-size: 1rem;
+  }
+  
+  /* Detalles y formularios */
+  .detalle, .metodo-pago {
+    margin-bottom: 30px;
+  }
+  
+  select, input[type="number"], input[type="text"], input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+  }
+  
+  /* Efecto de enfoque en los campos */
+  select:focus, input:focus {
+    border-color: #003366;
+    background-color: #f0f8ff;
+    outline: none;
+  }
+  
+  /* Botones */
+  button {
+    background-color: #003366;
+    color: white;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #002244;
+    transform: translateY(-3px);
+  }
+  
+  button:active {
+    transform: translateY(2px);
+  }
+  
+  button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  /* Estilos para el formulario de tarjeta y PayPal */
+  #tarjetaForm, #paypalForm {
+    margin-top: 10px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Resumen de compra */
+  .info {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+  }
+  
+  #resumen {
+    display: none;
+    margin-top: 30px;
+  }
+  
+  #resumen p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+  
+  #resumen button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background-color: #28a745;
+    font-size: 1.1rem;
+  }
+  
+  #resumen button:hover {
+    background-color: #218838;
+  }
+  
+  /* Estilos de impresión */
+  @media print {
+    body {
+      background-color: white;
+    }
+  
+    .menu-wrapper {
+      box-shadow: none;
+      padding: 0;
+    }
+  
+    button {
+      display: none;
+    }
+  }
+  
+  /* Ajustes para pantallas pequeñas */
+  @media (max-width: 768px) {
+    .menu-wrapper {
+      width: 90%;
+      padding: 20px;
+    }
+  
+    button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  }
+  
+  /* Contenedor de los asientos */
+  .asientos-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  /* Estilo para cada fila */
+  .fila {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+  }
+  
+  /* Letras de las filas */
+  .fila-letra {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+    margin-left: 15px; /* Separa la letra del último asiento */
+    min-width: 20px; /* Asegura que todas las letras tengan el mismo ancho */
+  }
+  
+  /* Estilos para los asientos */
+  .asiento {
+    width: 40px;
+    height: 40px;
+    background-color: #ccc;
+    text-align: center;
+    line-height: 40px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  /* Asiento seleccionado */
+  .asiento.seleccionado {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  /* Asiento ocupado */
+  .asiento.ocupado {
+    background-color: #dc3545;
+    cursor: not-allowed;
+  }
+  
+  /* Ajustes responsivos */
+  @media (max-width: 768px) {
+    .fila {
+      gap: 5px;
+    }
+    .asiento {
+      width: 35px;
+      height: 35px;
+      line-height: 35px;
+    }
+  }

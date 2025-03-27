@@ -1,0 +1,160 @@
+/* General reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #003366; /* Azul Cinepolis */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Alinea desde la parte superior */
+  height: 100vh;
+  margin-top: 20px; /* Para evitar corte */
+}
+
+/* Contenedor principal */
+.login-wrapper {
+  width: 100%;
+  max-width: 600px; /* Ancho máximo */
+  padding: 20px;
+}
+
+/* Contenedor de login */
+.login-container {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px; 
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Títulos */
+h1 {
+  color: #4CAF50;
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+h2 {
+  color: #333;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+
+/* Sección de instrucciones */
+.instructions {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.instructions h3 {
+  color: #333;
+  font-size: 1.4em;
+  margin-bottom: 15px;
+}
+
+.instruction-content ul {
+  list-style-type: none;
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+.instruction-content li {
+  color: #555;
+  font-size: 1em;
+  margin-bottom: 7px;
+}
+
+.instructions strong {
+  font-weight: bold;
+}
+
+/* Contenedores de input */
+.input-container {
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+/* Inputs generales */
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1em;
+  background-color: #f7f7f7;
+}
+
+input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  background-color: #fff;
+}
+
+/* Botón principal (Iniciar sesión) */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* -------------------------
+   Ajustes para el campo
+   de contraseña y el botón
+   Mostrar/Ocultar
+------------------------- */
+
+/* Contenedor para posicionar el botón dentro */
+.password-wrapper {
+  position: relative;
+}
+
+/* Deja espacio a la derecha para el botón */
+.password-wrapper input {
+  width: 100%;
+  padding-right: 60px;
+  box-sizing: border-box;
+}
+
+/* Botón Mostrar/Ocultar contraseña */
+.toggle-password-btn {
+  width: auto;          /* Sobrescribe el 100% global */
+  padding: 0;           /* Para que no se agrande */
+  background: transparent;
+  color: #333;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+/* Contenedor para botones */
+.btn-container {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;  /* Espacio entre botones */
+}
+
+.btn-container button {
+  flex: 1;
+}

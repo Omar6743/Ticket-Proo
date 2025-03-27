@@ -1,0 +1,219 @@
+/* General */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #003366; /* Azul Cinepolis */
+    color: #333;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Estilo para el contenedor principal del menú */
+  .menu-wrapper {
+    text-align: center;
+    padding: 50px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+    border-radius: 10px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Títulos */
+  h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  h2 {
+    font-size: 1.5em;
+    margin-bottom: 30px;
+    color: #555;
+  }
+  
+  /* Estilo de la lista de opciones */
+  .menu-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Las opciones se ajustan a varias columnas */
+    gap: 30px; /* Más espacio entre las opciones */
+    margin-top: 20px;
+  }
+  
+  /* Estilo para cada elemento de la lista */
+  .menu-list li {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Estilo para los enlaces de los teatros */
+  .menu-list a {
+    font-size: 1.3em;
+    text-decoration: none;
+    color: #fff;
+    background-color: #003366; /* Azul Cinepolis */
+    padding: 15px 25px;
+    border-radius: 8px;
+    border: none;
+    display: inline-block;
+    text-align: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%; /* Hace que los enlaces ocupen el 100% de su contenedor */
+  }
+  
+  .menu-list a:hover {
+    background-color: #002244;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Estilo de las secciones */
+  .menu-section {
+    margin-top: 30px;
+    display: none;
+    text-align: left;
+  }
+  
+  .menu-section h3 {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    color: #003366;
+  }
+  
+  .menu-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .menu-section ul li {
+    margin: 10px 0;
+  }
+  
+  .menu-section ul li a {
+    font-size: 1.2em;
+    text-decoration: none;
+    color: #555;
+  }
+  
+  /* Estilo para el botón */
+  button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1.1em;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 30px;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #e60000;
+  }
+  
+  /* Estilos para el formulario de selección */
+  .select-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .select-container select {
+    padding: 10px;
+    font-size: 1.1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 200px;
+  }
+  
+  /* Estilo para la selección de métodos de pago */
+  .metodo-pago {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .metodo-pago h3 {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  /* Estilos para los botones de pago */
+  .metodo-pago button {
+    background-color: #28a745;
+    margin-top: 20px;
+  }
+  
+  .metodo-pago button:hover {
+    background-color: #218838;
+  }
+  
+  /* Estilo para el resumen de compra */
+  #resumen {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    display: none;
+  }
+  
+  #resumen p {
+    font-size: 1.2em;
+    color: #333;
+  }
+  
+  #resumen button {
+    margin-top: 20px;
+    background-color: #003366;
+  }
+  
+  #resumen button:hover {
+    background-color: #002244;
+  }
+  
+  /* Estilos para los formularios */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  select {
+    padding: 10px;
+    font-size: 1.1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+  
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="number"]:focus,
+  select:focus {
+    border-color: #003366;
+    outline: none;
+  }
+  
+  /* Estilos para los formularios de pago */
+  #tarjetaForm,
+  #paypalForm {
+    margin-top: 20px;
+  }
+  
+  #tarjetaForm input[type="number"],
+  #paypalForm input[type="email"] {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  /* Estilos para el botón deshabilitado */
+  button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }

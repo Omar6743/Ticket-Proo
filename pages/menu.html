@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - TicketMaster</title>
+    <link rel="stylesheet" href="../src/css/menu.css">
+    <link rel="stylesheet" href="../src/css/teatroColon.css">
+</head>
+<body>
+    <div class="menu-wrapper">
+        <h1>Bienvenido a TicketMaster</h1>
+        <!-- Elemento para mostrar el mensaje personalizado -->
+        <h2 id="bienvenida"></h2>
+        <h2>Seleccione una opción para continuar</h2>
+        <ul class="menu-list">
+            <li><a href="#" onclick="mostrarTeatro()">Teatro</a></li>
+            <li><a href="#" onclick="mostrarCine()">Cine</a></li>
+            <li><a href="#" onclick="mostrarMuseo()">Museo</a></li>
+        </ul>
+
+        <!-- Sección para mostrar opciones de Teatro -->
+        <div id="teatro" class="menu-section" style="display:none;">
+            <h3>Opciones de Teatro</h3>
+            <ul>
+                <li><a href="../pages/teatroColon.html">Teatro Colón Buenos Aires</a></li>
+                <li><a href="../pages/scalaMilano.html">Teatro de la Scala Milán</a></li>
+                <li><a href="../pages/metropolitano.html">Teatro Metropólitan, Ciudad de México</a></li>
+            </ul>
+        </div>
+
+        <!-- Sección para mostrar opciones de Cine -->
+        <div id="cine" class="menu-section" style="display:none;">
+            <h3>Opciones de Cine</h3>
+            <ul>
+                <li><a href="../pages/Cinemark.html">Cinemark</a></li>
+                <li><a href="../pages/Cinépolis.html">Cinépolis</a></li>
+                <li><a href="../pages/Cinemex.html">Cinemex</a></li>
+                <li><a href="../pages/AMC.html">AMC</a></li>
+            </ul>
+        </div>
+
+        <!-- Sección para mostrar opciones de Museo -->
+        <div id="museo" class="menu-section" style="display:none;">
+            <h3>Opciones de Museo</h3>
+            <ul>
+                <li><a href="../pages/MuseodeLouvre.html">Museo de Louvre París</a></li>
+                <li><a href="../pages/MuseoMetropolitanodeNuevaYork.html">Museo Metropolitano de Nueva York</a></li>
+                <li><a href="../pages/MuseoVaticano.html">Museo Vaticano</a></li>
+                <li><a href="../pages/MuseoNacionaldeMéxico.html">Museo Nacional de Antropología, Ciudad de México</a></li>
+                <li><a href="../pages/MuseodeCatalunya.html">Museu Nacional d'Art de Catalunya</a></li>
+            </ul>
+        </div>
+
+        <!-- Botón para cerrar sesión -->
+        <button id="cerrarSesionBtn">Cerrar sesión</button>
+    </div>
+
+    <script src="../src/js/menu.js"></script>
+    <script>
+        // Verificación adicional al cargar la página
+        if (sessionStorage.getItem("sesionCerrada") === "true") {
+            window.location.replace('login.html');
+        }
+    </script>
+</body>
+</html>
