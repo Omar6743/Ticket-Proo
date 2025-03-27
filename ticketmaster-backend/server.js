@@ -13,8 +13,8 @@ app.use(bodyParser.json());
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',         // Reemplaza con tu usuario de MySQL
-    password: '12345678', // Reemplaza con tu contraseña de MySQL
-    database: 'ticketmaster_db',
+    password: '1234567891234', // Reemplaza con tu contraseña de MySQL
+    database: 'ticketmaster_db_',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
